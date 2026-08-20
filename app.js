@@ -22,6 +22,32 @@ const app = express();
 //
 // ⚠️ **最後不需呼叫 app.listen()** — 這個部分交由 server.js 負責（分離「組裝」跟「啟動」，這樣 test.js 可以 supertest 直接戳 app、不佔 port）。
 
+// 1. CORS middleware
+app.use(cors());
+
+// 2️. JSON body 解析
+app.use(express.json());
+
+// 3️. Swagger UI
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+
+// 4️. /auth router
+app.use('/auth', authRouter);
+
+// 5️. 404 守門員（無此路由資訊）
+app.use((req, res) => {
+  res.status(404).json({ 
+    status: 'false', 
+    message: '查無此路由' 
+  });
+});
+
+// 6️. 錯誤處理守門員（4 個參數、最後一個）
+app.use((err, req, res, next) => {
+  res.status(500).json({
+    err: err.constructor.name,
+    message: err.message
+  });
+});
 
 module.exports = app;
